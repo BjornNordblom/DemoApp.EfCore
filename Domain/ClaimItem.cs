@@ -24,10 +24,6 @@ public class ClaimItemConfiguration : IEntityTypeConfiguration<ClaimItem>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.ReferenceNo).IsRequired();
         builder.Property(x => x.Type).IsRequired();
-        builder
-            .HasOne(x => x.Claim)
-            .WithMany(x => x.ClaimItems)
-            .HasForeignKey(x => x.ClaimId)
-            .OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne(x => x.Claim).WithMany().HasForeignKey(x => x.ClaimId);
     }
 }

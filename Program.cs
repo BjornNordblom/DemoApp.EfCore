@@ -26,6 +26,13 @@ public static class Program
             ReferenceNo = "ABC123"
         };
 
+        var claimDebtor = new ClaimDebtor
+        {
+            Debtor = debtor.Debtor,
+            Claim = claim,
+            Involvement = ClaimDebtor.DebtorInvolvement.Primary
+        };
+
         var claimInvoice = new Invoice
         {
             ClaimItem = new ClaimItem()
@@ -49,7 +56,13 @@ public static class Program
             CreditedAmount = 500
         };
 
-        await dataContext.AddRangeAsync(debtor, claim, claimInvoice, claimCreditInvoice);
+        await dataContext.AddRangeAsync(
+            debtor,
+            claim,
+            claimDebtor,
+            claimInvoice,
+            claimCreditInvoice
+        );
         await dataContext.SaveChangesAsync();
         PrintContent(dataContext);
     }

@@ -62,5 +62,6 @@ public class DataContext : DbContext
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder.Properties<ClaimId>().HaveConversion<ShortIdConverter<ClaimId>>();
+        configurationBuilder.Properties<decimal>().HavePrecision(18, 4);
     }
 }

@@ -1,5 +1,3 @@
-using System.Reflection;
-
 public interface IShortIdFactory
 {
     bool Validate(string shortIdValue);

@@ -13,7 +13,7 @@ public record ClaimDebtor
     };
 
     public Guid Id { get; init; }
-    public Guid ClaimId { get; init; }
+    public ClaimId ClaimId { get; init; }
     public Claim Claim { get; init; } = default!;
     public Guid DebtorId { get; init; }
     public Debtor Debtor { get; init; } = default!;

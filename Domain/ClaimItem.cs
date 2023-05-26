@@ -10,7 +10,7 @@ public record ClaimItem
     }
 
     public Guid Id { get; init; }
-    public Guid ClaimId { get; init; }
+    public ClaimId ClaimId { get; init; }
     public Claim Claim { get; init; } = default!;
     public string ReferenceNo { get; init; } = default!;
     public ClaimType Type { get; init; } = default!;

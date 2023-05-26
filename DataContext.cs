@@ -1,13 +1,10 @@
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-
 public class DataContext : DbContext
 {
     private readonly ILoggerFactory _loggerFactory;
 
-    public DbSet<Claim> Claims { get; set; }
+    public DbSet<Claim> Claims { get; set; } = default!;
+    public DbSet<Debtor> Debtors { get; set; } = default!;
+    public DbSet<Creditor> Creditors { get; set; } = default!;
 
     public DataContext(ILoggerFactory loggerFactory)
     {
@@ -20,38 +17,9 @@ public class DataContext : DbContext
             @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;TrustServerCertificate=True;"
         );
         optionsBuilder
-            .UseLoggerFactory(
-                _loggerFactory
-            // LoggerFactory.Create(builder =>
-            // {
-            //     builder
-            //         .AddFilter(
-            //             (category, level) =>
-            //                 category == DbLoggerCategory.Database.Command.Name
-            //                 && level == LogLevel.Information
-            //         )
-            //         .AddConsole();
-            // })
-            )
+            .UseLoggerFactory(_loggerFactory)
             .EnableDetailedErrors()
             .EnableSensitiveDataLogging();
-
-        // LoggerFactory.Create(builder =>
-        // {
-        //     builder
-        //         .AddSimpleConsole(
-        //             (options) =>
-        //             {
-        //                 options.ColorBehavior = LoggerColorBehavior.Enabled;
-        //                 options.TimestampFormat = "[HH:mm:ss] ";
-        //             }
-        //         )
-        //         .AddFilter(
-        //             (category, level) =>
-        //                 category == DbLoggerCategory.Database.Command.Name
-        //                 && level == LogLevel.Debug
-        //         );
-        // })
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

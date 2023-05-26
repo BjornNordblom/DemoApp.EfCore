@@ -17,12 +17,29 @@ public static class Program
     {
         var creditor = new Creditor { Id = Guid.NewGuid(), Name = "ABC Company" };
 
-        var debtor = new DebtorNaturalPerson
+        // Create a new debtor of type NaturalPerson
+        var debtor = new Debtor
         {
-            Debtor = new Debtor { Type = Debtor.DebtorType.NaturalPerson },
-            FirstName = "John",
-            LastName = "Doe",
-            PersonalNumber = "121212-1212"
+            Id = Guid.NewGuid(),
+            Type = Debtor.DebtorType.NaturalPerson,
+            NaturalPerson = new DebtorNaturalPerson
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                PersonalNumber = "121212-1212"
+            }
+        };
+
+        var debtor2 = new Debtor
+        {
+            Id = Guid.NewGuid(),
+            Type = Debtor.DebtorType.NaturalPerson,
+            NaturalPerson = new DebtorNaturalPerson
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                PersonalNumber = "121212-1212"
+            }
         };
 
         var claim = Claim.Create("ABC123", creditor.Id);
@@ -30,14 +47,20 @@ public static class Program
 
         var claimDebtor = new ClaimDebtor
         {
-            Debtor = debtor.Debtor,
+            Debtor = debtor,
             Claim = claim,
             Involvement = ClaimDebtor.DebtorInvolvement.Primary
         };
         var claimDebtor2 = new ClaimDebtor
         {
-            Debtor = debtor.Debtor,
+            Debtor = debtor,
             Claim = claim2,
+            Involvement = ClaimDebtor.DebtorInvolvement.Primary
+        };
+        var claimDebtor3 = new ClaimDebtor
+        {
+            Debtor = debtor2,
+            Claim = claim,
             Involvement = ClaimDebtor.DebtorInvolvement.Primary
         };
         var claimInvoice = new Invoice
@@ -76,9 +99,11 @@ public static class Program
         await dataContext.AddRangeAsync(
             creditor,
             debtor,
+            debtor2,
             claim,
             claimDebtor,
             claimDebtor2,
+            claimDebtor3,
             claimInvoice,
             claimInvoice2,
             claimCreditInvoice
@@ -116,18 +141,45 @@ public static class Program
         Log.Information("Claim: {id}", id);
 
         using var dataContext = new DataContext(_logFactory);
-
-        var claim = dataContext.Claims.Include(c => c.Creditor).FirstOrDefault(x => x.Id == id);
-
-        if (claim != null)
+        var debtors = dataContext.Debtors.Include(x => x.Claims.Where(c => c.Id == id)).ToList();
+        foreach (var debtor in debtors)
+        {
+            Log.Information("Found debtor: {debtorId}", debtor.Id);
+            foreach (var claim in debtor.Claims)
+            {
+                Log.Information(
+                    "Found claim: {claimId} {claimReferenceNo}",
+                    claim.Id,
+                    claim.ReferenceNo
+                );
+            }
+        }
+        var claims = dataContext.Claims.Include(x => x.Debtors).Where(x => x.Id == id).ToList();
+        foreach (var claim in claims)
         {
             Log.Information(
-                "Found claim: {claimId} {claimReferenceNo} {claimCreditorName}",
+                "Found claim: {claimId} {claimReferenceNo}",
                 claim.Id,
-                claim.ReferenceNo,
-                claim.Creditor.Name
+                claim.ReferenceNo
             );
+            foreach (var debtor in claim.Debtors)
+            {
+                Log.Information("Found debtor: {debtorId}", debtor.Id);
+            }
         }
+        // var claims = dataContext.Claims.Include(x => x.Debtors).Where(x => x.Id == id).ToList();
+        // foreach (var claim in claims)
+        // {
+        //     Log.Information(
+        //         "Found claim: {claimId} {claimReferenceNo}",
+        //         claim.Id,
+        //         claim.ReferenceNo
+        //     );
+        //     foreach (var debtor in claim.Debtors)
+        //     {
+        //         Log.Information("Found debtor: {debtorId}", debtor.Id);
+        //     }
+        // }
     }
 
     private static ClaimId PrintContent()
@@ -139,25 +191,7 @@ public static class Program
 
         foreach (var claim in claims)
         {
-            Log.Information("Claim: {claimId}", claim.Id);
-            // Log.Information(
-            //     "Claim: {claimId} {claimReferenceNo} {claimCreditorName}",
-            //     claim.Id,
-            //     claim.ReferenceNo,
-            //     claim.Creditor.Name
-            // );
-            // foreach (var claimItem in claim.ClaimItems)
-            // {
-            //     Console.WriteLine($"ClaimItem: {claimItem.ReferenceNo}");
-            //     if (claimItem.Type == ClaimItem.ClaimType.Invoice)
-            //     {
-            //         Console.WriteLine($"Invoice: {claimItem.Invoice.Amount}");
-            //     }
-            //     else
-            //     {
-            //         Console.WriteLine($"CreditInvoice: {claimItem.CreditInvoice.CreditedAmount}");
-            //     }
-            // }
+            Log.Information("New Claim: {claimId}", claim.Id);
         }
         return claims[0].Id;
     }

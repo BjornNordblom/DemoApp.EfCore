@@ -7,16 +7,16 @@ using StronglyTypedIds;
 public static class Program
 {
     private static ILoggerFactory _logFactory;
+    private static IDataContext _dataContext;
 
-    private async static Task<DbContext> CreateDatabase()
+    private static async Task CreateDatabase()
     {
-        var dataContext = new DataContext(_logFactory);
-        await dataContext.Database.EnsureDeletedAsync();
-        await dataContext.Database.EnsureCreatedAsync();
-        return dataContext;
+        _dataContext = new DataContext(_logFactory);
+        await _dataContext.Database.EnsureDeletedAsync();
+        await _dataContext.Database.EnsureCreatedAsync();
     }
 
-    private async static Task SeedDatabaseSimple(DbContext dataContext)
+    private async static Task SeedDatabaseSimple()
     {
         var dateTime = new DateTimeService(() => DateTime.Now);
         var isAdult = new IsAdultSpecification(dateTime);
@@ -33,7 +33,7 @@ public static class Program
             FirstName = "John",
             LastName = "Doe",
             PersonalNumber = "121212-1212",
-            DateOfBirth = dateTime.Now.AddYears(-4)
+            DateOfBirth = dateTime.Now.AddYears(-40)
         };
         var claimDebtor = new ClaimDebtor
         {
@@ -55,8 +55,8 @@ public static class Program
         {
             throw new Exception("Debtor is not an adult");
         }
-        await dataContext.AddRangeAsync(debtor, claim, claimDebtor, claimInvoice);
-        await dataContext.SaveChangesAsync();
+        await _dataContext.AddRangeAsync(debtor, claim, claimDebtor, claimInvoice);
+        await _dataContext.SaveChangesAsync();
     }
 
     private async static Task SeedDatabase(DbContext dataContext)
@@ -160,8 +160,8 @@ public static class Program
             )
             .CreateLogger();
         ;
-
         _logFactory = new LoggerFactory().AddSerilog(Log.Logger);
+        await CreateDatabase();
         var dateTimeService = new DateTimeService();
         using IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
@@ -171,10 +171,10 @@ public static class Program
             .Build();
         try
         {
-            var dataContext = CreateDatabase().Result;
+            await CreateDatabase();
             for (var i = 0; i < 10; i++)
             {
-                SeedDatabaseSimple(dataContext).Wait();
+                await SeedDatabaseSimple();
             }
             var claimId = PrintContent();
             PrintOne(new ClaimId(claimId));

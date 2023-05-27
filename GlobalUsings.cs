@@ -6,3 +6,4 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 global using System.Linq.Expressions;
+global using Microsoft.EntityFrameworkCore.Infrastructure;

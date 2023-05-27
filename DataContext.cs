@@ -1,4 +1,4 @@
-using StronglyTypedIds;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 [assembly: StronglyTypedIdDefaults(
     backingType: StronglyTypedIdBackingType.Guid,
@@ -6,7 +6,20 @@ using StronglyTypedIds;
         | StronglyTypedIdConverter.SystemTextJson
 )]
 
-public class DataContext : DbContext
+public interface IDataContext
+{
+    DatabaseFacade Database { get; }
+    DbSet<Claim> Claims { get; set; }
+    DbSet<Debtor> Debtors { get; set; }
+    DbSet<Creditor> Creditors { get; set; }
+    DbSet<ClaimDebtor> ClaimDebtors { get; set; }
+
+    // AddRangeAsync
+    Task AddRangeAsync(params object[] entities);
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+}
+
+public class DataContext : DbContext, IDataContext
 {
     private readonly ILoggerFactory _loggerFactory;
 
@@ -22,8 +35,9 @@ public class DataContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(
-            @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;TrustServerCertificate=True;"
+        var sqlOptions = optionsBuilder.UseSqlServer(
+            @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+            options => options.EnableRetryOnFailure()
         );
         optionsBuilder
             .UseLoggerFactory(_loggerFactory)

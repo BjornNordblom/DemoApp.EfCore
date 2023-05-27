@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using StronglyTypedIds;
 
@@ -213,6 +215,14 @@ public static class Program
             {
                 Log.Information("Found debtor: {debtorId}", debtor.Id);
             }
+            var mapper = new ClaimMapper();
+            var claimDto = mapper.ClaimToClaimDto(claim);
+            Log.Information(
+                System.Text.Json.JsonSerializer.Serialize(
+                    claimDto,
+                    new JsonSerializerOptions { WriteIndented = true }
+                )
+            );
         }
     }
 

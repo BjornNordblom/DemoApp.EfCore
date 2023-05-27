@@ -2,4 +2,4 @@
     converters: StronglyTypedIdConverter.EfCoreValueConverter,
     backingType: StronglyTypedIdBackingType.Guid
 )]
-public partial struct ClaimId { }
+public partial struct DebtorId { }

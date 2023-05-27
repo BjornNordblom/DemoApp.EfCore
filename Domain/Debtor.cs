@@ -7,7 +7,7 @@ public record Debtor
         PublicInstitution = 3
     };
 
-    public Guid Id { get; init; }
+    public DebtorId Id { get; init; }
     public DebtorType Type { get; init; } = default!;
     public virtual IReadOnlyCollection<ClaimDebtor> DebtorClaims { get; init; } =
         new List<ClaimDebtor>();

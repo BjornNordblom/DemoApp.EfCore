@@ -1,3 +1,11 @@
+using StronglyTypedIds;
+
+[assembly: StronglyTypedIdDefaults(
+    backingType: StronglyTypedIdBackingType.Guid,
+    converters: StronglyTypedIdConverter.EfCoreValueConverter
+        | StronglyTypedIdConverter.SystemTextJson
+)]
+
 public class DataContext : DbContext
 {
     private readonly ILoggerFactory _loggerFactory;
@@ -5,6 +13,7 @@ public class DataContext : DbContext
     public DbSet<Claim> Claims { get; set; } = default!;
     public DbSet<Debtor> Debtors { get; set; } = default!;
     public DbSet<Creditor> Creditors { get; set; } = default!;
+    public DbSet<ClaimDebtor> ClaimDebtors { get; set; } = default!;
 
     public DataContext(ILoggerFactory loggerFactory)
     {
@@ -29,7 +38,8 @@ public class DataContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        configurationBuilder.Properties<ClaimId>().HaveConversion<ShortIdConverter<ClaimId>>();
+        configurationBuilder.Properties<ClaimId>().HaveConversion<ClaimId.EfCoreValueConverter>();
+        configurationBuilder.Properties<DebtorId>().HaveConversion<DebtorId.EfCoreValueConverter>();
         configurationBuilder.Properties<decimal>().HavePrecision(18, 4);
     }
 }

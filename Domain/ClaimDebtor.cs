@@ -9,9 +9,9 @@ public record ClaimDebtor
         CoSigner = 5
     };
 
-    public Guid ClaimId { get; init; }
+    public ClaimId ClaimId { get; init; }
     public Claim Claim { get; init; } = default!;
-    public Guid DebtorId { get; init; }
+    public DebtorId DebtorId { get; init; }
     public Debtor Debtor { get; init; } = default!;
     public DebtorInvolvement Involvement { get; init; } = default!;
 }

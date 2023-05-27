@@ -16,14 +16,6 @@ public class ShortIdFactory : IShortIdFactory
         ShortIdIdentifiers.All.TryGetValue(prefix, out var idType);
         if (idType is null)
             return default;
-        // var newId = (IShortId?)
-        //     idType.InvokeMember(
-        //         "Create",
-        //         BindingFlags.InvokeMethod,
-        //         null,
-        //         null,
-        //         new object[] { shortIdValue }
-        //     );
 
         return (IShortId?)Activator.CreateInstance(idType, shortIdValue);
     }

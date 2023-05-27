@@ -1,6 +1,6 @@
 public interface IShortId
 {
-    string ToShortId();
+    //    string ToShortId();
     Guid Value { get; init; }
-    static abstract string Identifier { get; }
+    public static abstract string Identifier { get; }
 }

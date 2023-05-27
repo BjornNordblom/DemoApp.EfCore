@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
+using StronglyTypedIds;
 
 public static class Program
 {
@@ -13,6 +14,42 @@ public static class Program
         return dataContext;
     }
 
+    private async static Task SeedDatabaseSimple(DbContext dataContext)
+    {
+        var claim = new Claim
+        {
+            Id = ClaimId.New(),
+            ReferenceNo = "ABC123",
+            Creditor = new Creditor { Id = Guid.NewGuid(), Name = "ABC Company" }
+        };
+        var debtor = new DebtorNaturalPerson
+        {
+            Id = DebtorId.New(),
+            Type = Debtor.DebtorType.NaturalPerson,
+            FirstName = "John",
+            LastName = "Doe",
+            PersonalNumber = "121212-1212"
+        };
+        var claimDebtor = new ClaimDebtor
+        {
+            Debtor = debtor,
+            Claim = claim,
+            Involvement = ClaimDebtor.DebtorInvolvement.Primary
+        };
+        var claimInvoice = new Invoice
+        {
+            ClaimItem = new ClaimItem()
+            {
+                Claim = claim,
+                ReferenceNo = "INV123",
+                Type = ClaimItem.ClaimType.Invoice
+            },
+            Amount = 1000
+        };
+        await dataContext.AddRangeAsync(debtor, claim, claimDebtor, claimInvoice);
+        await dataContext.SaveChangesAsync();
+    }
+
     private async static Task SeedDatabase(DbContext dataContext)
     {
         var creditor = new Creditor { Id = Guid.NewGuid(), Name = "ABC Company" };
@@ -20,7 +57,7 @@ public static class Program
         // Create a new debtor of type NaturalPerson
         var debtor = new DebtorNaturalPerson
         {
-            Id = Guid.NewGuid(),
+            Id = DebtorId.New(),
             Type = Debtor.DebtorType.NaturalPerson,
             FirstName = "John",
             LastName = "Doe",
@@ -29,7 +66,7 @@ public static class Program
 
         var debtor2 = new DebtorNaturalPerson
         {
-            Id = Guid.NewGuid(),
+            Id = DebtorId.New(),
             Type = Debtor.DebtorType.NaturalPerson,
             FirstName = "Jane",
             LastName = "Doe",
@@ -119,9 +156,12 @@ public static class Program
         try
         {
             var dataContext = CreateDatabase().Result;
-            SeedDatabase(dataContext).Wait();
+            for (var i = 0; i < 10; i++)
+            {
+                SeedDatabaseSimple(dataContext).Wait();
+            }
             var claimId = PrintContent();
-            PrintOne(claimId);
+            PrintOne(new ClaimId(claimId));
         }
         finally
         {
@@ -129,7 +169,7 @@ public static class Program
         }
     }
 
-    private static void PrintOne(Guid id)
+    private static void PrintOne(ClaimId id)
     {
         Log.Warning("PrintOne");
         Log.Information("Claim: {id}", id);
@@ -138,12 +178,18 @@ public static class Program
         var debtors = dataContext.Debtors
             .Include(x => x.DebtorClaims.Where(x => x.ClaimId == id))
             .ThenInclude(x => x.Claim)
+            .Where(x => x.DebtorClaims.Any(x => x.ClaimId == id))
             .ToList();
         foreach (var debtor in debtors)
         {
             Log.Information("Found debtor: {debtorId} {debtorType}", debtor.Id, debtor.Type);
             foreach (var claim in debtor.DebtorClaims.Select(x => x.Claim))
             {
+                if (claim is null)
+                {
+                    Log.Information("Claim is null");
+                    continue;
+                }
                 Log.Information(
                     "Found claim: {claimId} {claimReferenceNo}",
                     claim.Id,
@@ -181,6 +227,6 @@ public static class Program
         {
             Log.Information("New Claim: {claimId}", claim.Id);
         }
-        return claims[0].Id;
+        return claims[0].Id.Value;
     }
 }

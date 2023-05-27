@@ -1,11 +1,13 @@
 public record Claim
 {
-    public Guid Id { get; init; }
+    public ClaimId Id { get; init; }
     public string ReferenceNo { get; init; } = default!;
     public Guid CreditorId { get; init; }
     public Creditor Creditor { get; init; } = default!;
 
-    protected Claim(Guid id, string referenceNo, Guid creditorId)
+    public Claim() { }
+
+    public Claim(ClaimId id, string referenceNo, Guid creditorId)
     {
         Id = id;
         ReferenceNo = referenceNo;

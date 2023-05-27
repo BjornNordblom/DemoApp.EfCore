@@ -18,6 +18,8 @@ public static class Program
 
     private async static Task SeedDatabaseSimple(DbContext dataContext)
     {
+        var dateTime = new DateTimeService(() => DateTime.Now);
+        var isAdult = new IsAdultSpecification(dateTime);
         var claim = new Claim
         {
             Id = ClaimId.New(),
@@ -30,7 +32,8 @@ public static class Program
             Type = Debtor.DebtorType.NaturalPerson,
             FirstName = "John",
             LastName = "Doe",
-            PersonalNumber = "121212-1212"
+            PersonalNumber = "121212-1212",
+            DateOfBirth = dateTime.Now.AddYears(-4)
         };
         var claimDebtor = new ClaimDebtor
         {
@@ -48,6 +51,10 @@ public static class Program
             },
             Amount = 1000
         };
+        if (!isAdult.IsSatisfiedBy(debtor))
+        {
+            throw new Exception("Debtor is not an adult");
+        }
         await dataContext.AddRangeAsync(debtor, claim, claimDebtor, claimInvoice);
         await dataContext.SaveChangesAsync();
     }
@@ -155,6 +162,13 @@ public static class Program
         ;
 
         _logFactory = new LoggerFactory().AddSerilog(Log.Logger);
+        var dateTimeService = new DateTimeService();
+        using IHost host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddSingleton<IDateTimeService, DateTimeService>();
+            })
+            .Build();
         try
         {
             var dataContext = CreateDatabase().Result;

@@ -19,8 +19,7 @@ public record Claim
         return new Claim(new ClaimId(), referenceNo, creditorId);
     }
 
-    public virtual IReadOnlyCollection<ClaimDebtor> ClaimDebtors { get; set; } =
-        new List<ClaimDebtor>();
+    public virtual ICollection<ClaimDebtor> ClaimDebtors { get; set; } = new List<ClaimDebtor>();
 }
 
 public class ClaimConfiguration : IEntityTypeConfiguration<Claim>

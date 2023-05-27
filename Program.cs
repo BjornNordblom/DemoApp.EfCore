@@ -164,6 +164,27 @@ public static class Program
             }
             var claimId = PrintContent();
             PrintOne(new ClaimId(claimId));
+
+            // {
+            //   "ClaimId": "claim:9hUY1gjb2EWhPBRqJTd8dA",
+            //   "DebtorId": "debtor:chFxC8y6ZEqTz6TmbPYfyg",
+            //   "ClaimReferenceNo": "ABC123",
+            //   "DebtorType": "NaturalPerson",
+            //   "Involvement": "Primary"
+            // }
+            var claimDebtorRequestDto = new ClaimDebtorRequestDto
+            {
+                ClaimId = "claim:9hUY1gjb2EWhPBRqJTd8dA",
+                DebtorId = "debtor:chFxC8y6ZEqTz6TmbPYfyg"
+            };
+            var mapper = new ClaimMapper();
+            var claimDebtorRequest = mapper.ToClaimDebtorRequest(claimDebtorRequestDto);
+            Log.Information(
+                System.Text.Json.JsonSerializer.Serialize(
+                    claimDebtorRequest,
+                    new JsonSerializerOptions { WriteIndented = true }
+                )
+            );
         }
         finally
         {
@@ -175,7 +196,7 @@ public static class Program
     {
         Log.Warning("PrintOne");
         Log.Information("Claim: {id}", id);
-
+        var mapper = new ClaimMapper();
         using var dataContext = new DataContext(_logFactory);
         var debtors = dataContext.Debtors
             .Include(x => x.DebtorClaims.Where(x => x.ClaimId == id))
@@ -203,23 +224,26 @@ public static class Program
             .Include(x => x.ClaimDebtors)
             .ThenInclude(x => x.Debtor)
             .Where(x => x.Id == id)
+            .SelectMany(x => x.ClaimDebtors)
             .ToList();
         foreach (var claim in claims)
         {
             Log.Information(
-                "Found claim: {claimId} {claimReferenceNo}",
-                claim.Id,
-                claim.ReferenceNo
+                "Found claim: {claimId} {claimReferenceNo}, {debtorId}, {debtorInvolvement}",
+                claim.Claim.Id,
+                claim.Claim.ReferenceNo,
+                claim.Debtor.Id,
+                claim.Involvement
             );
-            foreach (var debtor in claim.ClaimDebtors.Select(x => x.Debtor))
-            {
-                Log.Information("Found debtor: {debtorId}", debtor.Id);
-            }
-            var mapper = new ClaimMapper();
-            var claimDto = mapper.ClaimToClaimDto(claim);
+            // foreach (var debtor in claim.Debtors.Select(x => x.Debtor))
+            // {
+            //     Log.Information("Found debtor: {debtorId}", debtor.Id);
+            // }
+
+            // var claimDto = mapper.ToClaimDto(claim.Claim);
             Log.Information(
                 System.Text.Json.JsonSerializer.Serialize(
-                    claimDto,
+                    mapper.ToClaimDebtorResponse(claim),
                     new JsonSerializerOptions { WriteIndented = true }
                 )
             );

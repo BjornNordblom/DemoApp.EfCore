@@ -18,28 +18,22 @@ public static class Program
         var creditor = new Creditor { Id = Guid.NewGuid(), Name = "ABC Company" };
 
         // Create a new debtor of type NaturalPerson
-        var debtor = new Debtor
+        var debtor = new DebtorNaturalPerson
         {
             Id = Guid.NewGuid(),
             Type = Debtor.DebtorType.NaturalPerson,
-            NaturalPerson = new DebtorNaturalPerson
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                PersonalNumber = "121212-1212"
-            }
+            FirstName = "John",
+            LastName = "Doe",
+            PersonalNumber = "121212-1212"
         };
 
-        var debtor2 = new Debtor
+        var debtor2 = new DebtorNaturalPerson
         {
             Id = Guid.NewGuid(),
             Type = Debtor.DebtorType.NaturalPerson,
-            NaturalPerson = new DebtorNaturalPerson
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                PersonalNumber = "121212-1212"
-            }
+            FirstName = "Jane",
+            LastName = "Doe",
+            PersonalNumber = "121212-1212"
         };
 
         var claim = Claim.Create("ABC123", creditor.Id);
@@ -135,17 +129,20 @@ public static class Program
         }
     }
 
-    private static void PrintOne(ClaimId id)
+    private static void PrintOne(Guid id)
     {
         Log.Warning("PrintOne");
         Log.Information("Claim: {id}", id);
 
         using var dataContext = new DataContext(_logFactory);
-        var debtors = dataContext.Debtors.Include(x => x.Claims.Where(c => c.Id == id)).ToList();
+        var debtors = dataContext.Debtors
+            .Include(x => x.DebtorClaims.Where(x => x.ClaimId == id))
+            .ThenInclude(x => x.Claim)
+            .ToList();
         foreach (var debtor in debtors)
         {
-            Log.Information("Found debtor: {debtorId}", debtor.Id);
-            foreach (var claim in debtor.Claims)
+            Log.Information("Found debtor: {debtorId} {debtorType}", debtor.Id, debtor.Type);
+            foreach (var claim in debtor.DebtorClaims.Select(x => x.Claim))
             {
                 Log.Information(
                     "Found claim: {claimId} {claimReferenceNo}",
@@ -154,7 +151,11 @@ public static class Program
                 );
             }
         }
-        var claims = dataContext.Claims.Include(x => x.Debtors).Where(x => x.Id == id).ToList();
+        var claims = dataContext.Claims
+            .Include(x => x.ClaimDebtors)
+            .ThenInclude(x => x.Debtor)
+            .Where(x => x.Id == id)
+            .ToList();
         foreach (var claim in claims)
         {
             Log.Information(
@@ -162,27 +163,14 @@ public static class Program
                 claim.Id,
                 claim.ReferenceNo
             );
-            foreach (var debtor in claim.Debtors)
+            foreach (var debtor in claim.ClaimDebtors.Select(x => x.Debtor))
             {
                 Log.Information("Found debtor: {debtorId}", debtor.Id);
             }
         }
-        // var claims = dataContext.Claims.Include(x => x.Debtors).Where(x => x.Id == id).ToList();
-        // foreach (var claim in claims)
-        // {
-        //     Log.Information(
-        //         "Found claim: {claimId} {claimReferenceNo}",
-        //         claim.Id,
-        //         claim.ReferenceNo
-        //     );
-        //     foreach (var debtor in claim.Debtors)
-        //     {
-        //         Log.Information("Found debtor: {debtorId}", debtor.Id);
-        //     }
-        // }
     }
 
-    private static ClaimId PrintContent()
+    private static Guid PrintContent()
     {
         Log.Warning("PrintContent");
 

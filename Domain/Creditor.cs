@@ -2,11 +2,11 @@ public record Creditor
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = default!;
-    public Guid ParentCreditorId { get; init; } = Guid.Empty;
+    public virtual Guid? ParentCreditorId { get; init; }
+    public virtual Creditor? ParentCreditor { get; init; }
 
-    // public virtual Creditor? ParentCreditor { get; init; }
-    // public virtual ICollection<Creditor> SubCreditors { get; init; }
-    //public ICollection<Claim> Claims { get; init; } = new List<Claim>();
+    public virtual IReadOnlyCollection<Creditor> SubCreditors { get; init; } = new List<Creditor>();
+    public virtual IReadOnlyCollection<Claim> Claims { get; init; } = new List<Claim>();
 }
 
 public class CreditorConfiguration : IEntityTypeConfiguration<Creditor>
@@ -16,13 +16,10 @@ public class CreditorConfiguration : IEntityTypeConfiguration<Creditor>
         builder.ToTable("Creditors");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).IsRequired();
-        builder.Property(x => x.ParentCreditorId).HasDefaultValue(Guid.Empty);
-        //builder.HasMany(x => x.Claims).WithOne().HasForeignKey(x => x.CreditorId);
-
-        //     builder
-        //         .HasMany(x => x.SubCreditors)
-        //         .WithOne(x => x.ParentCreditor)
-        //         .HasForeignKey(x => x.ParentCreditorId);
-        //     builder.HasOne(x => x.ParentCreditor).WithMany().HasForeignKey(x => x.ParentCreditorId);
+        builder
+            .HasOne(x => x.ParentCreditor)
+            .WithMany(x => x.SubCreditors)
+            .HasForeignKey(x => x.ParentCreditorId);
+        builder.HasMany(x => x.Claims).WithOne(x => x.Creditor).HasForeignKey(x => x.CreditorId);
     }
 }

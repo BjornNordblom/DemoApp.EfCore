@@ -9,32 +9,36 @@ public record Debtor
 
     public Guid Id { get; init; }
     public DebtorType Type { get; init; } = default!;
-    public DebtorNaturalPerson? NaturalPerson { get; init; }
-    public DebtorCompany? Company { get; init; }
-    public DebtorPublicInstitution? PublicInstitution { get; init; }
-    public ICollection<Claim> Claims { get; init; }
+    public virtual IReadOnlyCollection<ClaimDebtor> DebtorClaims { get; init; } =
+        new List<ClaimDebtor>();
+
+    public virtual DebtorCompany? DebtorCompany { get; set; }
+
+    public virtual DebtorNaturalPerson? DebtorNaturalPerson { get; set; }
+
+    public virtual DebtorPublicInstitution? DebtorPublicInstitution { get; set; }
 }
 
-public record DebtorNaturalPerson
+public record DebtorNaturalPerson : Debtor
 {
-    public Guid Id { get; init; }
     public string FirstName { get; init; } = default!;
     public string LastName { get; init; } = default!;
     public string? PersonalNumber { get; init; }
+    public virtual Debtor IdNavigation { get; set; } = null!;
 }
 
-public record DebtorCompany
+public record DebtorCompany : Debtor
 {
-    public Guid Id { get; init; }
     public string Name { get; init; } = default!;
     public string? OrganizationalNumber { get; init; }
+    public virtual Debtor IdNavigation { get; set; } = null!;
 }
 
-public record DebtorPublicInstitution
+public record DebtorPublicInstitution : Debtor
 {
-    public Guid Id { get; init; }
     public string Name { get; init; } = default!;
     public string? OrganizationalNumber { get; init; }
+    public virtual Debtor IdNavigation { get; set; } = null!;
 }
 
 public class DebtorConfiguration : IEntityTypeConfiguration<Debtor>
@@ -44,34 +48,6 @@ public class DebtorConfiguration : IEntityTypeConfiguration<Debtor>
         builder.ToTable("Debtors");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Type).IsRequired();
-        builder
-            .HasOne(x => x.NaturalPerson)
-            .WithOne()
-            .HasForeignKey<DebtorNaturalPerson>(x => x.Id)
-            .OnDelete(DeleteBehavior.NoAction);
-        builder
-            .HasOne(x => x.Company)
-            .WithOne()
-            .HasForeignKey<DebtorCompany>(x => x.Id)
-            .OnDelete(DeleteBehavior.NoAction);
-        builder
-            .HasOne(x => x.PublicInstitution)
-            .WithOne()
-            .HasForeignKey<DebtorPublicInstitution>(x => x.Id)
-            .OnDelete(DeleteBehavior.NoAction);
-        builder
-            .HasMany(x => x.Claims)
-            .WithMany(x => x.Debtors)
-            .UsingEntity<ClaimDebtor>(
-                x => x.HasOne(x => x.Claim).WithMany().HasForeignKey(x => x.ClaimId),
-                x => x.HasOne(x => x.Debtor).WithMany().HasForeignKey(x => x.DebtorId),
-                x =>
-                {
-                    x.ToTable("ClaimDebtors");
-                    x.HasKey(x => new { x.ClaimId, x.DebtorId });
-                    x.Property(x => x.Involvement).IsRequired();
-                }
-            );
     }
 }
 
@@ -80,11 +56,13 @@ public class DebtorNaturalPersonConfiguration : IEntityTypeConfiguration<DebtorN
     public void Configure(EntityTypeBuilder<DebtorNaturalPerson> builder)
     {
         builder.ToTable("DebtorNaturalPersons");
-        builder.HasKey(x => x.Id);
         builder.Property(x => x.FirstName).IsRequired();
         builder.Property(x => x.LastName).IsRequired();
         builder.Property(x => x.PersonalNumber).IsRequired(false);
-        //builder.HasOne(x => x.Debtor).WithOne().HasForeignKey<DebtorNaturalPerson>(x => x.DebtorId);
+        builder
+            .HasOne(d => d.IdNavigation)
+            .WithOne(p => p.DebtorNaturalPerson)
+            .HasForeignKey<DebtorNaturalPerson>(d => d.Id);
     }
 }
 
@@ -93,10 +71,12 @@ public class DebtorCompanyConfiguration : IEntityTypeConfiguration<DebtorCompany
     public void Configure(EntityTypeBuilder<DebtorCompany> builder)
     {
         builder.ToTable("DebtorCompanies");
-        builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).IsRequired();
         builder.Property(x => x.OrganizationalNumber).IsRequired(false);
-        //builder.HasOne(x => x.Debtor).WithOne().HasForeignKey<DebtorCompany>(x => x.DebtorId);
+        builder
+            .HasOne(d => d.IdNavigation)
+            .WithOne(p => p.DebtorCompany)
+            .HasForeignKey<DebtorCompany>(d => d.Id);
     }
 }
 
@@ -106,12 +86,11 @@ public class DebtorPublicInstitutionConfiguration
     public void Configure(EntityTypeBuilder<DebtorPublicInstitution> builder)
     {
         builder.ToTable("DebtorPublicInstitutions");
-        builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).IsRequired();
         builder.Property(x => x.OrganizationalNumber).IsRequired(false);
-        // builder
-        //     .HasOne(x => x.Debtor)
-        //     .WithOne()
-        //     .HasForeignKey<DebtorPublicInstitution>(x => x.DebtorId);
+        builder
+            .HasOne(d => d.IdNavigation)
+            .WithOne(p => p.DebtorPublicInstitution)
+            .HasForeignKey<DebtorPublicInstitution>(d => d.Id);
     }
 }

@@ -6,9 +6,9 @@ using StronglyTypedIds;
 
 public static class Program
 {
-    private static ILoggerFactory _logFactory;
-    private static IDataContext _dataContext;
-    private static IServiceProvider _serviceProvider;
+    private static ILoggerFactory _logFactory = null!;
+    private static IDataContext _dataContext = null!;
+    private static IServiceProvider _serviceProvider = null!;
 
     private async static Task CreateDatabase()
     {
@@ -27,13 +27,13 @@ public static class Program
                 var isAdult = new IsAdultSpecification(dateTime);
                 var claim = new Claim
                 {
-                    Id = ClaimId.New(),
+                    ClaimId = ClaimId.New(),
                     ReferenceNo = "ABC123",
-                    Creditor = new Creditor { Id = CreditorId.New(), Name = "ABC Company" }
+                    Creditor = new Creditor { CreditorId = CreditorId.New(), Name = "ABC Company" }
                 };
                 var debtor = new DebtorNaturalPerson
                 {
-                    Id = DebtorId.New(),
+                    DebtorId = DebtorId.New(),
                     Type = Debtor.DebtorType.NaturalPerson,
                     FirstName = "John",
                     LastName = "Doe",
@@ -83,12 +83,12 @@ public static class Program
 
     private async static Task SeedDatabase(DbContext dataContext)
     {
-        var creditor = new Creditor { Id = CreditorId.New(), Name = "ABC Company" };
+        var creditor = new Creditor { CreditorId = CreditorId.New(), Name = "ABC Company" };
 
         // Create a new debtor of type NaturalPerson
         var debtor = new DebtorNaturalPerson
         {
-            Id = DebtorId.New(),
+            DebtorId = DebtorId.New(),
             Type = Debtor.DebtorType.NaturalPerson,
             FirstName = "John",
             LastName = "Doe",
@@ -97,15 +97,15 @@ public static class Program
 
         var debtor2 = new DebtorNaturalPerson
         {
-            Id = DebtorId.New(),
+            DebtorId = DebtorId.New(),
             Type = Debtor.DebtorType.NaturalPerson,
             FirstName = "Jane",
             LastName = "Doe",
             PersonalNumber = "121212-1212"
         };
 
-        var claim = Claim.Create("ABC123", creditor.Id);
-        var claim2 = Claim.Create("ABC123", creditor.Id);
+        var claim = Claim.Create("ABC123", creditor.CreditorId);
+        var claim2 = Claim.Create("ABC123", creditor.CreditorId);
 
         var claimDebtor = new ClaimDebtor
         {
@@ -220,7 +220,7 @@ public static class Program
             await CreateDatabase();
             //for (var i = 0; i < 10; i++)
             //{
-            await SeedDatabaseSimple(1);
+            await SeedDatabaseSimple(6);
             //}
             var claimId = PrintContent();
             PrintOne(new ClaimId(claimId));
@@ -253,7 +253,7 @@ public static class Program
                     Involvement = "Primary",
                     Debtor = new DebtorDto
                     {
-                        Id = "debtor:chFxC8y6ZEqTz6TmbPYfyg",
+                        DebtorId = "debtor:chFxC8y6ZEqTz6TmbPYfyg",
                         Type = "NaturalPerson",
                         NaturalPerson = new DebtorNaturalPersonDto
                         {
@@ -265,8 +265,12 @@ public static class Program
                 }
             };
             var creditor = await _dataContext.Creditors.FirstOrDefaultAsync();
+            if (creditor == null)
+            {
+                throw new Exception("Creditor not found");
+            }
             var createClaim = new CreateClaimCommand(
-                mapper.CreditorIdToString(creditor.Id),
+                mapper.CreditorIdToString(creditor.CreditorId),
                 "XYZ098",
                 createClaimDebtors
             );
@@ -277,12 +281,21 @@ public static class Program
                     new JsonSerializerOptions { WriteIndented = true }
                 )
             );
-            var resultClaimDtoId = resultClaimDto.Id;
+            var resultClaimDtoId = resultClaimDto.ClaimId;
             var findClaimByIdQuery = new FindClaimByIdQuery(resultClaimDtoId);
             var findClaimResult = await mediator.Send(findClaimByIdQuery);
             Log.Information(
                 System.Text.Json.JsonSerializer.Serialize(
                     findClaimResult,
+                    new JsonSerializerOptions { WriteIndented = true }
+                )
+            );
+
+            var getClaims = new GetClaimsQuery();
+            var getClaimsResult = await mediator.Send(getClaims);
+            Log.Information(
+                System.Text.Json.JsonSerializer.Serialize(
+                    getClaimsResult,
                     new JsonSerializerOptions { WriteIndented = true }
                 )
             );
@@ -306,7 +319,7 @@ public static class Program
             .ToList();
         foreach (var debtor in debtors)
         {
-            Log.Information("Found debtor: {debtorId} {debtorType}", debtor.Id, debtor.Type);
+            Log.Information("Found debtor: {debtorId} {debtorType}", debtor.DebtorId, debtor.Type);
             foreach (var claim in debtor.DebtorClaims.Select(x => x.Claim))
             {
                 if (claim is null)
@@ -316,7 +329,7 @@ public static class Program
                 }
                 Log.Information(
                     "Found claim: {claimId} {claimReferenceNo}",
-                    claim.Id,
+                    claim.ClaimId,
                     claim.ReferenceNo
                 );
             }
@@ -324,16 +337,16 @@ public static class Program
         var claims = dataContext.Claims
             .Include(x => x.ClaimDebtors)
             .ThenInclude(x => x.Debtor)
-            .Where(x => x.Id == id)
+            .Where(x => x.ClaimId == id)
             .SelectMany(x => x.ClaimDebtors)
             .ToList();
         foreach (var claim in claims)
         {
             Log.Information(
                 "Found claim: {claimId} {claimReferenceNo}, {debtorId}, {debtorInvolvement}",
-                claim.Claim.Id,
+                claim.Claim.ClaimId,
                 claim.Claim.ReferenceNo,
-                claim.Debtor.Id,
+                claim.Debtor.DebtorId,
                 claim.Involvement
             );
             // foreach (var debtor in claim.Debtors.Select(x => x.Debtor))
@@ -360,8 +373,8 @@ public static class Program
 
         foreach (var claim in claims)
         {
-            Log.Information("New Claim: {claimId}", claim.Id);
+            Log.Information("New Claim: {claimId}", claim.ClaimId);
         }
-        return claims[0].Id.Value;
+        return claims[0].ClaimId;
     }
 }

@@ -34,7 +34,7 @@ public class Debtor : AggregateRoot
         return debtor;
     }
 
-    public DebtorId Id { get; init; } = DebtorId.New();
+    public DebtorId DebtorId { get; init; } = DebtorId.New();
     public DebtorType Type { get; init; } = default!;
     public IReadOnlyCollection<ClaimDebtor> DebtorClaims { get; init; } = new List<ClaimDebtor>();
 
@@ -50,7 +50,7 @@ public class DebtorConfiguration : IEntityTypeConfiguration<Debtor>
     public void Configure(EntityTypeBuilder<Debtor> builder)
     {
         builder.ToTable("Debtors");
-        builder.HasKey(x => x.Id);
+        builder.HasKey(x => x.DebtorId);
         builder.Property(x => x.Type).IsRequired();
     }
 }

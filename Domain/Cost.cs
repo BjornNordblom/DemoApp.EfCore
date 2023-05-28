@@ -1,6 +1,6 @@
 public sealed record Cost
 {
-    public CostId Id { get; init; } = CostId.New();
+    public CostId CostId { get; init; } = CostId.New();
 
     public int CostDefinitionId { get; init; }
     public CostDefinition CostDefinition { get; init; } = default!;
@@ -13,7 +13,7 @@ public class CostConfiguration : IEntityTypeConfiguration<Cost>
     public void Configure(EntityTypeBuilder<Cost> builder)
     {
         builder.ToTable("Costs");
-        builder.HasKey(x => x.Id);
+        builder.HasKey(x => x.CostId);
         //builder.Property(x => x.CostDefinition).IsRequired();
         builder.Property(x => x.Amount).IsRequired();
         builder.Property(x => x.Date).IsRequired();

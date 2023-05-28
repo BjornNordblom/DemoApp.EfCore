@@ -17,16 +17,15 @@ public sealed class CreateClaimHandler : IRequestHandler<CreateClaimCommand, Cla
         var claim = _mapper.ToClaim(command);
         await _context.AddAsync(claim);
         await _context.SaveChangesAsync(cancellationToken);
-        var strClaimId = _mapper.ClaimIdToString(claim.Id) ?? string.Empty;
         var createdClaim = await _context.Claims
             .Include(c => c.Creditor)
             .Include(c => c.ClaimDebtors)
             .ThenInclude(cd => cd.Debtor)
-            .ThenInclude(d => d.DebtorNaturalPerson)
-            .FirstOrDefaultAsync(x => x.Id == claim.Id, cancellationToken);
-        return _mapper.ToClaimDto(createdClaim); //new CreateClaimResponse(strClaimId, claim.ReferenceNo);
-        // var claim = _mapper.Map<Claim>(command);
-        // await _claimRepository.AddAsync(claim);
-        // return _mapper.Map<CreateClaimResponse>(claim);
+            .FirstOrDefaultAsync(x => x.ClaimId == claim.ClaimId, cancellationToken);
+        if (createdClaim == null)
+        {
+            throw new Exception("Claim not found");
+        }
+        return _mapper.ToClaimDto(createdClaim);
     }
 }

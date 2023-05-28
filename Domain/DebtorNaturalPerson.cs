@@ -4,7 +4,8 @@ public sealed class DebtorNaturalPerson : Debtor
     public string LastName { get; init; } = default!;
     public string? PersonalNumber { get; init; }
     public DateTime? DateOfBirth { get; init; }
-    public Debtor IdNavigation { get; set; } = null!;
+
+    //public Debtor IdNavigation { get; set; } = null!;
 
     public int? GetAge(IDateTimeService dateTimeService)
     {
@@ -31,9 +32,9 @@ public class DebtorNaturalPersonConfiguration : IEntityTypeConfiguration<DebtorN
         builder.Property(x => x.FirstName).IsRequired();
         builder.Property(x => x.LastName).IsRequired();
         builder.Property(x => x.PersonalNumber).IsRequired(false);
-        builder
-            .HasOne(d => d.IdNavigation)
-            .WithOne(p => p.DebtorNaturalPerson)
-            .HasForeignKey<DebtorNaturalPerson>(d => d.Id);
+        // builder
+        //     .HasOne(d => d.IdNavigation)
+        //     .WithOne(p => p.DebtorNaturalPerson)
+        //     .HasForeignKey<DebtorNaturalPerson>(d => d.Id);
     }
 }

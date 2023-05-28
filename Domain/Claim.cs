@@ -1,17 +1,17 @@
 public sealed class Claim : AggregateRoot
 {
-    public ClaimId Id { get; init; } = ClaimId.New();
+    public ClaimId ClaimId { get; init; } = ClaimId.New();
     public string ReferenceNo { get; init; } = default!;
     public CreditorId CreditorId { get; init; }
     public Creditor Creditor { get; init; } = default!;
 
     public Claim()
-        : base() { }
+        : base(ClaimId.New()) { }
 
-    public Claim(ClaimId id, string referenceNo, CreditorId creditorId)
-        : base(id.Value)
+    public Claim(ClaimId claimId, string referenceNo, CreditorId creditorId)
+        : base(claimId)
     {
-        Id = id;
+        ClaimId = claimId;
         ReferenceNo = referenceNo;
         CreditorId = creditorId;
     }
@@ -33,7 +33,7 @@ public sealed class Claim : AggregateRoot
         };
         ClaimDebtors.Add(claimDebtor);
 
-        RaiseDomainEvent(new ClaimAddedDebtorEvent(debtor.Id));
+        RaiseDomainEvent(new ClaimAddedDebtorEvent(debtor.DebtorId));
 
         return Result.Success(claimDebtor);
     }
@@ -44,7 +44,7 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
     public void Configure(EntityTypeBuilder<Claim> builder)
     {
         builder.ToTable("Claims");
-        builder.HasKey(x => x.Id);
+        builder.HasKey(x => x.ClaimId);
         builder.Property(x => x.ReferenceNo).IsRequired();
         builder.HasOne(x => x.Creditor).WithMany().HasForeignKey(x => x.CreditorId);
     }

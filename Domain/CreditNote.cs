@@ -1,11 +1,11 @@
 public record CreditNote
 {
-    public Guid Id { get; init; }
+    public Guid CreditNoteId { get; init; }
     public Guid ClaimItemId { get; init; }
     public ClaimItem ClaimItem { get; init; } = default!;
     public Guid? CreditedInvoiceId { get; init; }
     public Invoice? CreditedInvoice { get; init; }
-    public NegativeAmount Amount { get; init; }
+    public NegativeAmount Amount { get; init; } = NegativeAmount.Zero;
 }
 
 public class CreditNoteConfiguration : IEntityTypeConfiguration<CreditNote>
@@ -13,7 +13,7 @@ public class CreditNoteConfiguration : IEntityTypeConfiguration<CreditNote>
     public void Configure(EntityTypeBuilder<CreditNote> builder)
     {
         builder.ToTable("CreditNotes");
-        builder.HasKey(x => x.Id);
+        builder.HasKey(x => x.CreditNoteId);
         builder.Property(x => x.Amount).IsRequired();
         builder
             .HasOne(x => x.ClaimItem)

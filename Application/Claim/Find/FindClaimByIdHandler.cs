@@ -19,8 +19,12 @@ public sealed class FindClaimByIdQueryHandler : IQueryHandler<FindClaimByIdQuery
             .Include(c => c.Creditor)
             .Include(c => c.ClaimDebtors)
             .ThenInclude(cd => cd.Debtor)
-            .Where(c => c.Id == requestClaimId)
+            .Where(c => c.ClaimId == requestClaimId)
             .FirstOrDefaultAsync(cancellationToken);
+        if (claim == null)
+        {
+            throw new Exception("Claim not found");
+        }
         return _mapper.ToClaimDto(claim);
     }
 }

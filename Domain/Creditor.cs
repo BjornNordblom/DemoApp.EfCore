@@ -1,6 +1,6 @@
 public record Creditor
 {
-    public CreditorId Id { get; init; } = CreditorId.New();
+    public CreditorId CreditorId { get; init; } = CreditorId.New();
     public string Name { get; init; } = default!;
     public virtual CreditorId? ParentCreditorId { get; init; } = null;
     public virtual Creditor? ParentCreditor { get; init; }
@@ -14,7 +14,7 @@ public class CreditorConfiguration : IEntityTypeConfiguration<Creditor>
     public void Configure(EntityTypeBuilder<Creditor> builder)
     {
         builder.ToTable("Creditors");
-        builder.HasKey(x => x.Id);
+        builder.HasKey(x => x.CreditorId);
         builder.Property(x => x.Name).IsRequired();
         builder
             .HasOne(x => x.ParentCreditor)

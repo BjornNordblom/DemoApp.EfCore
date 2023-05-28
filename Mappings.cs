@@ -6,7 +6,7 @@
 
 public record ClaimDto
 {
-    public string Id { get; init; } = default!;
+    public string ClaimId { get; init; } = default!;
     public string ReferenceNo { get; init; } = default!;
     public CreditorDto Creditor { get; init; } = default!;
     public List<ClaimDebtorDto> ClaimDebtors { get; init; } = new();
@@ -14,7 +14,7 @@ public record ClaimDto
 
 public record CreditorDto
 {
-    public string Id { get; init; } = default!;
+    public string CreditorId { get; init; } = default!;
     public string Name { get; init; } = string.Empty;
     public string? RegistrationNumber { get; init; }
 }
@@ -27,7 +27,7 @@ public record ClaimDebtorDto
 
 public record DebtorDto
 {
-    public string Id { get; init; } = default!;
+    public string DebtorId { get; init; } = default!;
     public string Type { get; init; } = default!;
     public DebtorNaturalPersonDto? NaturalPerson { get; init; }
     public DebtorLegalPersonDto? LegalPerson { get; init; }

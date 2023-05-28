@@ -1,5 +1,10 @@
 public sealed record NegativeAmount : Amount<NegativeAmount>, IUnsignedDecimal
 {
+    public static readonly NegativeAmount Zero = new(0m);
+
+    public NegativeAmount()
+        : base(0m) { }
+
     public NegativeAmount(Amount<NegativeAmount> original)
         : base(original) { }
 

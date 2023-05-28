@@ -37,8 +37,15 @@ public class DataContext : DbContext, IDataContext
     {
         var convertDomainEventsToOutboxMessagesInterceptor =
             _serviceProvider.GetService<ConvertDomainEventsToOutboxMessagesInterceptor>();
-        var entityDeleteInterceptor = _serviceProvider.GetService<UpdateAuditableInterceptor>();
-
+        var updateAuditableInterceptor = _serviceProvider.GetService<UpdateAuditableInterceptor>();
+        if (convertDomainEventsToOutboxMessagesInterceptor == null)
+        {
+            throw new Exception("ConvertDomainEventsToOutboxMessagesInterceptor is null");
+        }
+        if (updateAuditableInterceptor == null)
+        {
+            throw new Exception("UpdateAuditableInterceptor is null");
+        }
         var sqlOptions = optionsBuilder
             .UseSqlServer(
                 @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
@@ -46,7 +53,7 @@ public class DataContext : DbContext, IDataContext
             )
             .AddInterceptors(
                 convertDomainEventsToOutboxMessagesInterceptor,
-                entityDeleteInterceptor
+                updateAuditableInterceptor
             );
         optionsBuilder
             .UseLoggerFactory(_loggerFactory)

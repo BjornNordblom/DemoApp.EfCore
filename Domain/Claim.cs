@@ -1,13 +1,15 @@
-public record Claim
+public sealed class Claim : AggregateRoot
 {
     public ClaimId Id { get; init; } = ClaimId.New();
     public string ReferenceNo { get; init; } = default!;
     public CreditorId CreditorId { get; init; }
     public Creditor Creditor { get; init; } = default!;
 
-    public Claim() { }
+    public Claim()
+        : base() { }
 
     public Claim(ClaimId id, string referenceNo, CreditorId creditorId)
+        : base(id.Value)
     {
         Id = id;
         ReferenceNo = referenceNo;
@@ -19,7 +21,22 @@ public record Claim
         return new Claim(ClaimId.New(), referenceNo, creditorId);
     }
 
-    public virtual ICollection<ClaimDebtor> ClaimDebtors { get; set; } = new List<ClaimDebtor>();
+    public ICollection<ClaimDebtor> ClaimDebtors { get; set; } = new List<ClaimDebtor>();
+
+    public Result<ClaimDebtor> AddDebtor(Debtor debtor, ClaimDebtor.DebtorInvolvement involvement)
+    {
+        var claimDebtor = new ClaimDebtor
+        {
+            Debtor = debtor,
+            Involvement = involvement,
+            Claim = this
+        };
+        ClaimDebtors.Add(claimDebtor);
+
+        RaiseDomainEvent(new ClaimAddedDebtorEvent(debtor.Id));
+
+        return Result.Success(claimDebtor);
+    }
 }
 
 public class ClaimConfiguration : IEntityTypeConfiguration<Claim>

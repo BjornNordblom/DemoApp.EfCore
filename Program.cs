@@ -9,64 +9,75 @@ public static class Program
     private static ILoggerFactory _logFactory;
     private static IDataContext _dataContext;
 
-    private static async Task CreateDatabase()
+    private async static Task CreateDatabase()
     {
         _dataContext = new DataContext(_logFactory);
         await _dataContext.Database.EnsureDeletedAsync();
         await _dataContext.Database.EnsureCreatedAsync();
     }
 
-    private async static Task SeedDatabaseSimple()
+    private async static Task SeedDatabaseSimple(int times)
     {
-        var dateTime = new DateTimeService(() => DateTime.Now);
-        var isAdult = new IsAdultSpecification(dateTime);
-        var claim = new Claim
+        while (times > 0)
         {
-            Id = ClaimId.New(),
-            ReferenceNo = "ABC123",
-            Creditor = new Creditor { Id = CreditorId.New(), Name = "ABC Company" }
-        };
-        var debtor = new DebtorNaturalPerson
-        {
-            Id = DebtorId.New(),
-            Type = Debtor.DebtorType.NaturalPerson,
-            FirstName = "John",
-            LastName = "Doe",
-            PersonalNumber = "121212-1212",
-            DateOfBirth = dateTime.Now.AddYears(-40)
-        };
-        var claimDebtor = new ClaimDebtor
-        {
-            Debtor = debtor,
-            Claim = claim,
-            Involvement = ClaimDebtor.DebtorInvolvement.Primary
-        };
-        var claimInvoice = new Invoice
-        {
-            ClaimItem = new ClaimItem()
+            try
             {
-                Claim = claim,
-                ReferenceNo = "INV123",
-                Type = ClaimItem.ClaimType.Invoice
-            },
-            Amount = PositiveAmount.From(1000m)
-        };
-        var claimCredit = new CreditNote
-        {
-            ClaimItem = new ClaimItem()
+                var dateTime = new DateTimeService(() => DateTime.Now);
+                var isAdult = new IsAdultSpecification(dateTime);
+                var claim = new Claim
+                {
+                    Id = ClaimId.New(),
+                    ReferenceNo = "ABC123",
+                    Creditor = new Creditor { Id = CreditorId.New(), Name = "ABC Company" }
+                };
+                var debtor = new DebtorNaturalPerson
+                {
+                    Id = DebtorId.New(),
+                    Type = Debtor.DebtorType.NaturalPerson,
+                    FirstName = "John",
+                    LastName = "Doe",
+                    PersonalNumber = "121212-1212",
+                    DateOfBirth = dateTime.Now.AddYears(-40)
+                };
+                claim.AddDebtor(debtor, ClaimDebtor.DebtorInvolvement.Primary);
+                // var claimDebtor = new ClaimDebtor
+                // {
+                //     Debtor = debtor,
+                //     Claim = claim,
+                //     Involvement = ClaimDebtor.DebtorInvolvement.Primary
+                // };
+                var claimInvoice = new Invoice
+                {
+                    ClaimItem = new ClaimItem()
+                    {
+                        Claim = claim,
+                        ReferenceNo = "INV123",
+                        Type = ClaimItem.ClaimType.Invoice
+                    },
+                    Amount = PositiveAmount.From(1000m)
+                };
+                var claimCredit = new CreditNote
+                {
+                    ClaimItem = new ClaimItem()
+                    {
+                        Claim = claim,
+                        ReferenceNo = "CRED123",
+                        Type = ClaimItem.ClaimType.CreditNote
+                    },
+                    Amount = NegativeAmount.From(-100m)
+                };
+                if (!isAdult.IsSatisfiedBy(debtor))
+                {
+                    throw new Exception("Debtor is not an adult");
+                }
+                await _dataContext.AddRangeAsync(debtor, claim, claimInvoice);
+                await _dataContext.SaveChangesAsync();
+            }
+            finally
             {
-                Claim = claim,
-                ReferenceNo = "CRED123",
-                Type = ClaimItem.ClaimType.CreditNote
-            },
-            Amount = NegativeAmount.From(100m)
-        };
-        if (!isAdult.IsSatisfiedBy(debtor))
-        {
-            throw new Exception("Debtor is not an adult");
+                times--;
+            }
         }
-        await _dataContext.AddRangeAsync(debtor, claim, claimDebtor, claimInvoice);
-        await _dataContext.SaveChangesAsync();
     }
 
     private async static Task SeedDatabase(DbContext dataContext)
@@ -134,7 +145,7 @@ public static class Program
             Amount = PositiveAmount.From(1000m)
         };
 
-        var claimCreditInvoice = new CreditNote
+        var claimCreditNote = new CreditNote
         {
             ClaimItem = new ClaimItem()
             {
@@ -143,7 +154,7 @@ public static class Program
                 Type = ClaimItem.ClaimType.CreditNote
             },
             CreditedInvoice = claimInvoice,
-            Amount = new NegativeAmount(-500m)
+            Amount = NegativeAmount.From(-500m)
         };
 
         await dataContext.AddRangeAsync(
@@ -156,7 +167,7 @@ public static class Program
             claimDebtor3,
             claimInvoice,
             claimInvoice2,
-            claimCreditInvoice
+            claimCreditNote
         );
         await dataContext.SaveChangesAsync();
     }
@@ -171,7 +182,7 @@ public static class Program
             .CreateLogger();
         ;
         _logFactory = new LoggerFactory().AddSerilog(Log.Logger);
-        await CreateDatabase();
+
         var dateTimeService = new DateTimeService();
         using IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
@@ -200,10 +211,10 @@ public static class Program
         try
         {
             await CreateDatabase();
-            for (var i = 0; i < 10; i++)
-            {
-                await SeedDatabaseSimple();
-            }
+            //for (var i = 0; i < 10; i++)
+            //{
+            await SeedDatabaseSimple(1);
+            //}
             var claimId = PrintContent();
             PrintOne(new ClaimId(claimId));
 

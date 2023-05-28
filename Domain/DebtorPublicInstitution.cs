@@ -1,8 +1,8 @@
-public record DebtorPublicInstitution : Debtor
+public sealed class DebtorPublicInstitution : Debtor
 {
     public string Name { get; init; } = default!;
     public string? OrganizationalNumber { get; init; }
-    public virtual Debtor IdNavigation { get; set; } = null!;
+    public Debtor IdNavigation { get; set; } = null!;
 }
 
 public class DebtorPublicInstitutionConfiguration

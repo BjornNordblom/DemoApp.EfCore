@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public interface IDataContext
@@ -32,8 +33,8 @@ public class DataContext : DbContext, IDataContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var sqlOptions = optionsBuilder.UseSqlServer(
-            @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;",
-            options => options.EnableRetryOnFailure()
+            @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+        //,options => options.EnableRetryOnFailure()
         );
         optionsBuilder
             .UseLoggerFactory(_loggerFactory)
@@ -44,6 +45,28 @@ public class DataContext : DbContext, IDataContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        modelBuilder.Entity<Claim>().HasQueryFilter(x => x.DeletedAt == null);
+        modelBuilder.Entity<Debtor>().HasQueryFilter(x => x.DeletedAt == null);
+
+        foreach (var e in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var i in e.GetProperties().Where(x => x.ClrType == typeof(string)))
+            {
+                if (i.Name == "Memo")
+                {
+                    i.SetMaxLength(512);
+                }
+                else if (i.Name == "Description")
+                {
+                    i.SetMaxLength(256);
+                }
+                else if (i.Name.Contains("Name"))
+                {
+                    i.SetMaxLength(128);
+                }
+            }
+        }
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
@@ -57,10 +80,13 @@ public class DataContext : DbContext, IDataContext
         //configurationBuilder.Properties<PositiveAmount>().HaveConversion<PositiveAmountConverter>();
         configurationBuilder
             .Properties<PositiveAmount>()
-            .HaveConversion<AmountToUnsignedDecimalConverter<PositiveAmount>>();
+            .HaveConversion<AmountToUnsignedDecimalConverter<PositiveAmount>>()
+            .HavePrecision(18, 4);
         configurationBuilder
             .Properties<NegativeAmount>()
-            .HaveConversion<AmountToUnsignedDecimalConverter<NegativeAmount>>();
+            .HaveConversion<AmountToUnsignedDecimalConverter<NegativeAmount>>()
+            .HavePrecision(18, 4);
         configurationBuilder.Properties<decimal>().HavePrecision(18, 4);
+        configurationBuilder.Properties<string>().HaveMaxLength(64);
     }
 }

@@ -1,10 +1,10 @@
-public record DebtorNaturalPerson : Debtor
+public sealed class DebtorNaturalPerson : Debtor
 {
     public string FirstName { get; init; } = default!;
     public string LastName { get; init; } = default!;
     public string? PersonalNumber { get; init; }
     public DateTime? DateOfBirth { get; init; }
-    public virtual Debtor IdNavigation { get; set; } = null!;
+    public Debtor IdNavigation { get; set; } = null!;
 
     public int? GetAge(IDateTimeService dateTimeService)
     {

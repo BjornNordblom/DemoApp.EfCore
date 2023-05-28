@@ -32,7 +32,7 @@ FROM [dbo].[Claims]
     INNER JOIN [dbo].[ClaimItems]
         ON [ClaimId] = [Claims].[Id]
            AND [Type] = 2
-    INNER JOIN [dbo].[CreditInvoices]
+    INNER JOIN [dbo].[CreditNotes]
         ON [ClaimItemId] = [ClaimItems].[Id];
 
 SELECT *

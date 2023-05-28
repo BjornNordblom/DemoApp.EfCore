@@ -21,6 +21,7 @@ public class CostDefinitionConfiguration : IEntityTypeConfiguration<CostDefiniti
         builder.ToTable("CostDefinitions");
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => x.Name).IsUnique();
+        builder.HasAlternateKey(x => x.Name);
         builder.Property(x => x.Description).IsRequired();
         builder.Property(x => x.BaseAmount).IsRequired();
         builder.Property(x => x.VATType).IsRequired();

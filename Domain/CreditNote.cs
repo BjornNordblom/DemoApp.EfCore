@@ -8,7 +8,7 @@ public record CreditNote
     public NegativeAmount Amount { get; init; }
 }
 
-public class CreditInvoiceConfiguration : IEntityTypeConfiguration<CreditNote>
+public class CreditNoteConfiguration : IEntityTypeConfiguration<CreditNote>
 {
     public void Configure(EntityTypeBuilder<CreditNote> builder)
     {

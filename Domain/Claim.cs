@@ -1,6 +1,6 @@
 public record Claim
 {
-    public ClaimId Id { get; init; }
+    public ClaimId Id { get; init; } = ClaimId.New();
     public string ReferenceNo { get; init; } = default!;
     public Guid CreditorId { get; init; }
     public Creditor Creditor { get; init; } = default!;
@@ -16,7 +16,7 @@ public record Claim
 
     public static Claim Create(string referenceNo, Guid creditorId)
     {
-        return new Claim(new ClaimId(), referenceNo, creditorId);
+        return new Claim(ClaimId.New(), referenceNo, creditorId);
     }
 
     public virtual ICollection<ClaimDebtor> ClaimDebtors { get; set; } = new List<ClaimDebtor>();

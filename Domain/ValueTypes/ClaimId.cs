@@ -1,5 +1,2 @@
-[StronglyTypedId(
-    converters: StronglyTypedIdConverter.EfCoreValueConverter,
-    backingType: StronglyTypedIdBackingType.Guid
-)]
+[StronglyTypedId]
 public partial struct ClaimId : IShortId { }

@@ -167,6 +167,24 @@ public static class Program
             .ConfigureServices(services =>
             {
                 services.AddSingleton<IDateTimeService, DateTimeService>();
+                services.AddSingleton<IClaimRepository, ClaimRepository>();
+                services.AddScoped<IMapper, ClaimMapper>();
+                services.AddDbContext<DataContext>();
+                services.AddMediator();
+                services.AddLogging(loggingBuilder =>
+                {
+                    loggingBuilder.ClearProviders();
+                    loggingBuilder
+                        .AddSerilog(Log.Logger)
+                        .AddFilter(
+                            "Microsoft.EntityFrameworkCore.Database.Command",
+                            LogLevel.Information
+                        )
+                        .AddFilter(
+                            "Microsoft.EntityFrameworkCore.Infrastructure",
+                            LogLevel.Information
+                        );
+                });
             })
             .Build();
         try
@@ -196,6 +214,43 @@ public static class Program
             Log.Information(
                 System.Text.Json.JsonSerializer.Serialize(
                     claimDebtorRequest,
+                    new JsonSerializerOptions { WriteIndented = true }
+                )
+            );
+            var mediator = host.Services.GetRequiredService<IMediator>();
+            var createClaimDebtors = new List<ClaimDebtorDto>()
+            {
+                new ClaimDebtorDto
+                {
+                    Involvement = "Primary",
+                    Debtor = new DebtorDto
+                    {
+                        Id = "debtor:chFxC8y6ZEqTz6TmbPYfyg",
+                        Type = "NaturalPerson",
+                        NaturalPerson = new DebtorNaturalPersonDto
+                        {
+                            FirstName = "Slim",
+                            LastName = "Jim",
+                            PersonalNumber = "000000-0000"
+                        }
+                    }
+                }
+            };
+            var creditor = await _dataContext.Creditors.FirstOrDefaultAsync();
+            var createClaim = new CreateClaimCommand(creditor.Id, "XYZ098", createClaimDebtors);
+            var resultClaimDto = await mediator.Send(createClaim);
+            Log.Information(
+                System.Text.Json.JsonSerializer.Serialize(
+                    resultClaimDto,
+                    new JsonSerializerOptions { WriteIndented = true }
+                )
+            );
+            var resultClaimDtoId = resultClaimDto.Id;
+            var findClaimByIdQuery = new FindClaimByIdQuery(resultClaimDtoId);
+            var findClaimResult = await mediator.Send(findClaimByIdQuery);
+            Log.Information(
+                System.Text.Json.JsonSerializer.Serialize(
+                    findClaimResult,
                     new JsonSerializerOptions { WriteIndented = true }
                 )
             );

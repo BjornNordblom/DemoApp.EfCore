@@ -1,11 +1,5 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-[assembly: StronglyTypedIdDefaults(
-    backingType: StronglyTypedIdBackingType.Guid,
-    converters: StronglyTypedIdConverter.EfCoreValueConverter
-        | StronglyTypedIdConverter.SystemTextJson
-)]
-
 public interface IDataContext
 {
     DatabaseFacade Database { get; }

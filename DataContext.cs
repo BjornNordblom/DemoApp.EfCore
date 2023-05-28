@@ -18,24 +18,36 @@ public interface IDataContext
 public class DataContext : DbContext, IDataContext
 {
     private readonly ILoggerFactory _loggerFactory;
+    private readonly IServiceProvider _serviceProvider;
 
     public DbSet<Claim> Claims { get; set; } = default!;
     public DbSet<Debtor> Debtors { get; set; } = default!;
     public DbSet<Creditor> Creditors { get; set; } = default!;
     public DbSet<ClaimDebtor> ClaimDebtors { get; set; } = default!;
     public DbSet<Cost> Costs { get; set; } = default!;
+    public DbSet<OutboxMessage> OutboxMessages { get; set; } = default!;
 
-    public DataContext(ILoggerFactory loggerFactory)
+    public DataContext(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
     {
         _loggerFactory = loggerFactory;
+        _serviceProvider = serviceProvider;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var sqlOptions = optionsBuilder.UseSqlServer(
-            @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
-        //,options => options.EnableRetryOnFailure()
-        );
+        var convertDomainEventsToOutboxMessagesInterceptor =
+            _serviceProvider.GetService<ConvertDomainEventsToOutboxMessagesInterceptor>();
+        var entityDeleteInterceptor = _serviceProvider.GetService<UpdateAuditableInterceptor>();
+
+        var sqlOptions = optionsBuilder
+            .UseSqlServer(
+                @"Server=.\SQLEXPRESS;Database=Hypernova;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+            //,options => options.EnableRetryOnFailure()
+            )
+            .AddInterceptors(
+                convertDomainEventsToOutboxMessagesInterceptor,
+                entityDeleteInterceptor
+            );
         optionsBuilder
             .UseLoggerFactory(_loggerFactory)
             .EnableDetailedErrors()
@@ -53,7 +65,11 @@ public class DataContext : DbContext, IDataContext
         {
             foreach (var i in e.GetProperties().Where(x => x.ClrType == typeof(string)))
             {
-                if (i.Name == "Memo")
+                if (i.Name == "Content")
+                {
+                    i.SetMaxLength(int.MaxValue);
+                }
+                else if (i.Name == "Memo")
                 {
                     i.SetMaxLength(512);
                 }

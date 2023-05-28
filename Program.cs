@@ -8,10 +8,11 @@ public static class Program
 {
     private static ILoggerFactory _logFactory;
     private static IDataContext _dataContext;
+    private static IServiceProvider _serviceProvider;
 
     private async static Task CreateDatabase()
     {
-        _dataContext = new DataContext(_logFactory);
+        _dataContext = new DataContext(_serviceProvider, _logFactory);
         await _dataContext.Database.EnsureDeletedAsync();
         await _dataContext.Database.EnsureCreatedAsync();
     }
@@ -184,11 +185,15 @@ public static class Program
         _logFactory = new LoggerFactory().AddSerilog(Log.Logger);
 
         var dateTimeService = new DateTimeService();
+        var userService = new UserService();
         using IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
                 services.AddSingleton<IDateTimeService, DateTimeService>();
+                services.AddSingleton<IUserService, UserService>();
                 services.AddSingleton<IClaimRepository, ClaimRepository>();
+                services.AddSingleton<ConvertDomainEventsToOutboxMessagesInterceptor>();
+                services.AddSingleton<UpdateAuditableInterceptor>();
                 services.AddScoped<IMapper, ClaimMapper>();
                 services.AddDbContext<DataContext>();
                 services.AddMediator();
@@ -208,6 +213,8 @@ public static class Program
                 });
             })
             .Build();
+        // Get the host serviceprovider
+        _serviceProvider = host.Services;
         try
         {
             await CreateDatabase();
@@ -291,7 +298,7 @@ public static class Program
         Log.Warning("PrintOne");
         Log.Information("Claim: {id}", id);
         var mapper = new ClaimMapper();
-        using var dataContext = new DataContext(_logFactory);
+        using var dataContext = new DataContext(_serviceProvider, _logFactory);
         var debtors = dataContext.Debtors
             .Include(x => x.DebtorClaims.Where(x => x.ClaimId == id))
             .ThenInclude(x => x.Claim)
@@ -348,8 +355,8 @@ public static class Program
     {
         Log.Warning("PrintContent");
 
-        using var dataContext = new DataContext(_logFactory);
-        var claims = dataContext.Claims.ToList();
+        using var dataContext = new DataContext(_serviceProvider, _logFactory);
+        var claims = _dataContext.Claims.ToList();
 
         foreach (var claim in claims)
         {

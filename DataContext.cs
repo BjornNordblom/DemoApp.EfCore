@@ -21,6 +21,7 @@ public class DataContext : DbContext, IDataContext
     public DbSet<Debtor> Debtors { get; set; } = default!;
     public DbSet<Creditor> Creditors { get; set; } = default!;
     public DbSet<ClaimDebtor> ClaimDebtors { get; set; } = default!;
+    public DbSet<Cost> Costs { get; set; } = default!;
 
     public DataContext(ILoggerFactory loggerFactory)
     {
@@ -48,6 +49,10 @@ public class DataContext : DbContext, IDataContext
     {
         configurationBuilder.Properties<ClaimId>().HaveConversion<ClaimId.EfCoreValueConverter>();
         configurationBuilder.Properties<DebtorId>().HaveConversion<DebtorId.EfCoreValueConverter>();
+        configurationBuilder
+            .Properties<CreditorId>()
+            .HaveConversion<CreditorId.EfCoreValueConverter>();
+        configurationBuilder.Properties<CostId>().HaveConversion<CostId.EfCoreValueConverter>();
         configurationBuilder.Properties<decimal>().HavePrecision(18, 4);
     }
 }

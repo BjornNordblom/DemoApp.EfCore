@@ -1,2 +1,2 @@
 [StronglyTypedId]
-public partial struct DebtorId : IShortId { }
+public partial struct DebtorId { }

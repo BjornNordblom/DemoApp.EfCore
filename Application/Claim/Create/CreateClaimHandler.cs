@@ -1,6 +1,6 @@
-public sealed class CreateClaimHandler : IRequestHandler<CreateClaimCommand, CreateClaimResponse>
+public sealed class CreateClaimHandler : IRequestHandler<CreateClaimCommand, ClaimDto>
 {
-    private readonly DbContext _context;
+    private readonly DataContext _context;
     private readonly IMapper _mapper;
 
     public CreateClaimHandler(DataContext context, IMapper mapper)
@@ -9,7 +9,7 @@ public sealed class CreateClaimHandler : IRequestHandler<CreateClaimCommand, Cre
         _mapper = mapper;
     }
 
-    public async ValueTask<CreateClaimResponse> Handle(
+    public async ValueTask<ClaimDto> Handle(
         CreateClaimCommand command,
         CancellationToken cancellationToken
     )
@@ -18,7 +18,13 @@ public sealed class CreateClaimHandler : IRequestHandler<CreateClaimCommand, Cre
         await _context.AddAsync(claim);
         await _context.SaveChangesAsync(cancellationToken);
         var strClaimId = _mapper.ClaimIdToString(claim.Id) ?? string.Empty;
-        return new CreateClaimResponse(strClaimId, claim.ReferenceNo);
+        var createdClaim = await _context.Claims
+            .Include(c => c.Creditor)
+            .Include(c => c.ClaimDebtors)
+            .ThenInclude(cd => cd.Debtor)
+            .ThenInclude(d => d.DebtorNaturalPerson)
+            .FirstOrDefaultAsync(x => x.Id == claim.Id, cancellationToken);
+        return _mapper.ToClaimDto(createdClaim); //new CreateClaimResponse(strClaimId, claim.ReferenceNo);
         // var claim = _mapper.Map<Claim>(command);
         // await _claimRepository.AddAsync(claim);
         // return _mapper.Map<CreateClaimResponse>(claim);

@@ -24,7 +24,7 @@ public static class Program
         {
             Id = ClaimId.New(),
             ReferenceNo = "ABC123",
-            Creditor = new Creditor { Id = Guid.NewGuid(), Name = "ABC Company" }
+            Creditor = new Creditor { Id = CreditorId.New(), Name = "ABC Company" }
         };
         var debtor = new DebtorNaturalPerson
         {
@@ -61,7 +61,7 @@ public static class Program
 
     private async static Task SeedDatabase(DbContext dataContext)
     {
-        var creditor = new Creditor { Id = Guid.NewGuid(), Name = "ABC Company" };
+        var creditor = new Creditor { Id = CreditorId.New(), Name = "ABC Company" };
 
         // Create a new debtor of type NaturalPerson
         var debtor = new DebtorNaturalPerson
@@ -237,7 +237,11 @@ public static class Program
                 }
             };
             var creditor = await _dataContext.Creditors.FirstOrDefaultAsync();
-            var createClaim = new CreateClaimCommand(creditor.Id, "XYZ098", createClaimDebtors);
+            var createClaim = new CreateClaimCommand(
+                mapper.CreditorIdToString(creditor.Id),
+                "XYZ098",
+                createClaimDebtors
+            );
             var resultClaimDto = await mediator.Send(createClaim);
             Log.Information(
                 System.Text.Json.JsonSerializer.Serialize(

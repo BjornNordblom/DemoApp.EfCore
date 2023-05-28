@@ -2,19 +2,19 @@ public record Claim
 {
     public ClaimId Id { get; init; } = ClaimId.New();
     public string ReferenceNo { get; init; } = default!;
-    public Guid CreditorId { get; init; }
+    public CreditorId CreditorId { get; init; }
     public Creditor Creditor { get; init; } = default!;
 
     public Claim() { }
 
-    public Claim(ClaimId id, string referenceNo, Guid creditorId)
+    public Claim(ClaimId id, string referenceNo, CreditorId creditorId)
     {
         Id = id;
         ReferenceNo = referenceNo;
         CreditorId = creditorId;
     }
 
-    public static Claim Create(string referenceNo, Guid creditorId)
+    public static Claim Create(string referenceNo, CreditorId creditorId)
     {
         return new Claim(ClaimId.New(), referenceNo, creditorId);
     }

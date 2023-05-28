@@ -1,7 +1,5 @@
-using Mediator;
-
 public sealed record CreateClaimCommand(
-    Guid CreditorId,
+    string CreditorId,
     string ReferenceNo,
     List<ClaimDebtorDto> ClaimDebtors
-) : IRequest<CreateClaimResponse>;
+) : IRequest<ClaimDto>;

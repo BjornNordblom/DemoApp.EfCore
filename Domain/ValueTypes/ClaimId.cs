@@ -1,2 +1,2 @@
 [StronglyTypedId]
-public partial struct ClaimId : IShortId { }
+public partial struct ClaimId { }

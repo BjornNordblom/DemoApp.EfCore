@@ -1,8 +1,8 @@
 public record Creditor
 {
-    public Guid Id { get; init; }
+    public CreditorId Id { get; init; } = CreditorId.New();
     public string Name { get; init; } = default!;
-    public virtual Guid? ParentCreditorId { get; init; }
+    public virtual CreditorId? ParentCreditorId { get; init; } = null;
     public virtual Creditor? ParentCreditor { get; init; }
 
     public virtual IReadOnlyCollection<Creditor> SubCreditors { get; init; } = new List<Creditor>();

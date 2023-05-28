@@ -82,6 +82,8 @@ public interface IMapper
     string DebtorIdToString(DebtorId debtorId);
     ClaimId StringToClaimId(String shortId);
     DebtorId StringToDebtorId(String shortId);
+    CreditorDto ToCreditorDto(Creditor creditor);
+    Creditor ToCreditor(CreditorDto creditorDto);
 }
 
 [Mapper]
@@ -99,14 +101,24 @@ public partial class ClaimMapper : IMapper
 
     public partial ClaimDebtor ToClaimDebtor(ClaimDebtorResponseDto claimDebtorDto);
 
+    public partial CreditorDto ToCreditorDto(Creditor creditor);
+
+    public partial Creditor ToCreditor(CreditorDto creditorDto);
+
     public string ClaimIdToString(ClaimId claimId) => GuidToShortId("claim", claimId.Value);
 
     public string DebtorIdToString(DebtorId debtorId) => GuidToShortId("debtor", debtorId.Value);
+
+    public string CreditorIdToString(CreditorId creditorId) =>
+        GuidToShortId("creditor", creditorId.Value);
 
     public ClaimId StringToClaimId(String shortId) => new ClaimId(ShortIdToGuid("claim", shortId));
 
     public DebtorId StringToDebtorId(String shortId) =>
         new DebtorId(ShortIdToGuid("debtor", shortId));
+
+    public CreditorId StringToCreditorId(String shortId) =>
+        new CreditorId(ShortIdToGuid("creditor", shortId));
 
     public string GuidToShortId(String prefix, Guid id)
     {

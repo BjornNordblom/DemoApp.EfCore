@@ -49,7 +49,17 @@ public static class Program
                 ReferenceNo = "INV123",
                 Type = ClaimItem.ClaimType.Invoice
             },
-            Amount = 1000
+            Amount = PositiveAmount.From(1000m)
+        };
+        var claimCredit = new CreditNote
+        {
+            ClaimItem = new ClaimItem()
+            {
+                Claim = claim,
+                ReferenceNo = "CRED123",
+                Type = ClaimItem.ClaimType.CreditNote
+            },
+            Amount = NegativeAmount.From(100m)
         };
         if (!isAdult.IsSatisfiedBy(debtor))
         {
@@ -111,7 +121,7 @@ public static class Program
                 ReferenceNo = "INV123",
                 Type = ClaimItem.ClaimType.Invoice
             },
-            Amount = 1000
+            Amount = PositiveAmount.From(1000m)
         };
         var claimInvoice2 = new Invoice
         {
@@ -121,10 +131,10 @@ public static class Program
                 ReferenceNo = "INV123",
                 Type = ClaimItem.ClaimType.Invoice
             },
-            Amount = 1000
+            Amount = PositiveAmount.From(1000m)
         };
 
-        var claimCreditInvoice = new CreditInvoice
+        var claimCreditInvoice = new CreditNote
         {
             ClaimItem = new ClaimItem()
             {
@@ -133,7 +143,7 @@ public static class Program
                 Type = ClaimItem.ClaimType.CreditNote
             },
             CreditedInvoice = claimInvoice,
-            CreditedAmount = 500
+            Amount = new NegativeAmount(-500m)
         };
 
         await dataContext.AddRangeAsync(

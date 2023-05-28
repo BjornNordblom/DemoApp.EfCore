@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public interface IDataContext
 {
@@ -53,6 +54,13 @@ public class DataContext : DbContext, IDataContext
             .Properties<CreditorId>()
             .HaveConversion<CreditorId.EfCoreValueConverter>();
         configurationBuilder.Properties<CostId>().HaveConversion<CostId.EfCoreValueConverter>();
+        //configurationBuilder.Properties<PositiveAmount>().HaveConversion<PositiveAmountConverter>();
+        configurationBuilder
+            .Properties<PositiveAmount>()
+            .HaveConversion<AmountToUnsignedDecimalConverter<PositiveAmount>>();
+        configurationBuilder
+            .Properties<NegativeAmount>()
+            .HaveConversion<AmountToUnsignedDecimalConverter<NegativeAmount>>();
         configurationBuilder.Properties<decimal>().HavePrecision(18, 4);
     }
 }

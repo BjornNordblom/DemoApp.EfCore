@@ -141,4 +141,8 @@ public partial class ClaimMapper : IMapper
         //return new ClaimId(new Guid(bytes));
         return new Guid(bytes);
     }
+
+    public decimal PositiveAmountToDecimal(PositiveAmount amount) => amount.Value;
+
+    public PositiveAmount DecimalToPositiveAmount(decimal amount) => PositiveAmount.From(amount);
 }

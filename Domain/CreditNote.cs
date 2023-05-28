@@ -1,24 +1,24 @@
-public record CreditInvoice
+public record CreditNote
 {
     public Guid Id { get; init; }
     public Guid ClaimItemId { get; init; }
     public ClaimItem ClaimItem { get; init; } = default!;
-    public Guid CreditedInvoiceId { get; init; } = Guid.Empty;
+    public Guid? CreditedInvoiceId { get; init; }
     public Invoice? CreditedInvoice { get; init; }
-    public decimal CreditedAmount { get; init; }
+    public NegativeAmount Amount { get; init; }
 }
 
-public class CreditInvoiceConfiguration : IEntityTypeConfiguration<CreditInvoice>
+public class CreditInvoiceConfiguration : IEntityTypeConfiguration<CreditNote>
 {
-    public void Configure(EntityTypeBuilder<CreditInvoice> builder)
+    public void Configure(EntityTypeBuilder<CreditNote> builder)
     {
-        builder.ToTable("CreditInvoices");
+        builder.ToTable("CreditNotes");
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.CreditedAmount).IsRequired();
+        builder.Property(x => x.Amount).IsRequired();
         builder
             .HasOne(x => x.ClaimItem)
             .WithOne()
-            .HasForeignKey<CreditInvoice>(x => x.ClaimItemId)
+            .HasForeignKey<CreditNote>(x => x.ClaimItemId)
             .OnDelete(DeleteBehavior.NoAction);
         builder
             .HasOne(x => x.CreditedInvoice)

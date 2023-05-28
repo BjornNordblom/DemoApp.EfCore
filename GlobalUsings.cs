@@ -10,3 +10,5 @@ global using Mediator;
 global using Microsoft.AspNetCore.WebUtilities;
 global using Riok.Mapperly;
 global using Riok.Mapperly.Abstractions;
+global using System.Globalization;
+global using System.Text.Json;

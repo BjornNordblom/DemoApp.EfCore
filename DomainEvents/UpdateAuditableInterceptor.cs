@@ -20,6 +20,10 @@ internal class UpdateAuditableInterceptor : SaveChangesInterceptor
         InterceptionResult<int> result
     )
     {
+        if (eventData.Context == null)
+        {
+            throw new Exception("DbContext is null");
+        }
         InvokeInterceptorServices(eventData.Context);
         return result;
     }
@@ -30,6 +34,10 @@ internal class UpdateAuditableInterceptor : SaveChangesInterceptor
         CancellationToken cancellationToken = new CancellationToken()
     )
     {
+        if (eventData.Context == null)
+        {
+            throw new Exception("DbContext is null");
+        }
         InvokeInterceptorServices(eventData.Context);
         return ValueTask.FromResult(result);
     }

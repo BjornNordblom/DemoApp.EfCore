@@ -1,23 +1,13 @@
-public sealed record NegativeAmount : Amount<NegativeAmount>, IUnsignedDecimal
+using Vogen;
+
+[ValueObject(
+    conversions: Conversions.EfCoreValueConverter
+        | Conversions.TypeConverter
+        | Conversions.SystemTextJson,
+    underlyingType: typeof(decimal)
+)]
+public readonly partial struct NegativeAmount
 {
-    public static readonly NegativeAmount Zero = new(0m);
-
-    public NegativeAmount()
-        : base(0m) { }
-
-    public NegativeAmount(Amount<NegativeAmount> original)
-        : base(original) { }
-
-    public NegativeAmount(decimal value)
-        : base(value)
-    {
-        if (value > 0)
-        {
-            throw new ArgumentException("Amount cannot be positive", nameof(value));
-        }
-    }
-
-    public static implicit operator decimal(NegativeAmount amount) => amount.Value;
-
-    public static implicit operator NegativeAmount(decimal value) => new(value);
+    public static Validation Validate(decimal value) =>
+        value <= 0 ? Validation.Ok : Validation.Invalid("Amount must be negative.");
 }

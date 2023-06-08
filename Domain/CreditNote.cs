@@ -5,7 +5,7 @@ public record CreditNote
     public ClaimItem ClaimItem { get; init; } = default!;
     public Guid? CreditedInvoiceId { get; init; }
     public Invoice? CreditedInvoice { get; init; }
-    public NegativeAmount Amount { get; init; } = NegativeAmount.Zero;
+    public NegativeAmount Amount { get; init; } = NegativeAmount.From(0m);
 }
 
 public class CreditNoteConfiguration : IEntityTypeConfiguration<CreditNote>

@@ -70,6 +70,17 @@ public class DataContext : DbContext, IDataContext
 
         foreach (var e in modelBuilder.Model.GetEntityTypes())
         {
+            foreach (var i in e.GetProperties().Where(x => x.ClrType == typeof(DateTime)))
+            {
+                if (i.Name.EndsWith("Date"))
+                {
+                    i.SetColumnType("date");
+                }
+                else if (i.Name.EndsWith("At"))
+                {
+                    i.SetColumnType("datetime2");
+                }
+            }
             foreach (var i in e.GetProperties().Where(x => x.ClrType == typeof(string)))
             {
                 if (i.Name == "Content")
@@ -100,15 +111,24 @@ public class DataContext : DbContext, IDataContext
             .Properties<CreditorId>()
             .HaveConversion<CreditorId.EfCoreValueConverter>();
         configurationBuilder.Properties<CostId>().HaveConversion<CostId.EfCoreValueConverter>();
-        //configurationBuilder.Properties<PositiveAmount>().HaveConversion<PositiveAmountConverter>();
         configurationBuilder
             .Properties<PositiveAmount>()
-            .HaveConversion<AmountToUnsignedDecimalConverter<PositiveAmount>>()
+            .HaveConversion<PositiveAmount.EfCoreValueConverter>()
             .HavePrecision(18, 4);
         configurationBuilder
             .Properties<NegativeAmount>()
-            .HaveConversion<AmountToUnsignedDecimalConverter<NegativeAmount>>()
+            .HaveConversion<NegativeAmount.EfCoreValueConverter>()
             .HavePrecision(18, 4);
+
+        //configurationBuilder.Properties<PositiveAmount>().HaveConversion<PositiveAmountConverter>();
+        // configurationBuilder
+        //     .Properties<PositiveAmount>()
+        //     .HaveConversion<AmountToUnsignedDecimalConverter<PositiveAmount>>()
+        //     .HavePrecision(18, 4);
+        // configurationBuilder
+        //     .Properties<NegativeAmount>()
+        //     .HaveConversion<AmountToUnsignedDecimalConverter<NegativeAmount>>()
+        //     .HavePrecision(18, 4);
         configurationBuilder.Properties<decimal>().HavePrecision(18, 4);
         configurationBuilder.Properties<string>().HaveMaxLength(64);
     }

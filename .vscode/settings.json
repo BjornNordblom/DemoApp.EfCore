@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["Hypernova", "SQLEXPRESS"]
+  "cSpell.words": ["Hypernova", "SQLEXPRESS"],
+  "dotnet.defaultSolution": "DemoApp.EfCore.sln"
 }

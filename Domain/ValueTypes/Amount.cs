@@ -1,10 +1,11 @@
-public record Amount<T> : ValueObject
+public record Amount<T>
+    where T : IUnsignedDecimal
 {
     public decimal Value { get; }
 
-    public Amount(decimal value)
+    public Amount(T value)
     {
-        Value = value;
+        Value = value.Value;
     }
 
     public static implicit operator decimal(Amount<T> amount) => amount.Value;
@@ -13,7 +14,7 @@ public record Amount<T> : ValueObject
 
     public static T From(decimal value)
     {
-        return (T)Activator.CreateInstance(typeof(T), value);
+        return (T)Activator.CreateInstance(typeof(T), value)!;
     }
 
     public static T operator +(Amount<T> left, Amount<T> right) => From(left.Value + right.Value);
@@ -33,9 +34,4 @@ public record Amount<T> : ValueObject
     public static bool operator >=(Amount<T> left, Amount<T> right) => left.Value >= right.Value;
 
     public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
-
-    protected override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return Value;
-    }
 }

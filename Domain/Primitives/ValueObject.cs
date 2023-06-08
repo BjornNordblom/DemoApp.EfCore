@@ -1,17 +1,17 @@
-public abstract record ValueObject
+public abstract record ValueObject<T>
 {
-    public virtual ValueObject Value { get; }
+    public virtual T Value { get; } = default!;
 
-    protected static bool EqualOperator(ValueObject left, ValueObject right)
+    protected static bool EqualOperator(T left, T right)
     {
-        if (ReferenceEquals(left, null) ^ ReferenceEquals(right, null))
+        if (left is null || right is null)
         {
             return false;
         }
         return ReferenceEquals(left, right) || left.Equals(right);
     }
 
-    protected static bool NotEqualOperator(ValueObject left, ValueObject right)
+    protected static bool NotEqualOperator(T left, T right)
     {
         return !(EqualOperator(left, right));
     }

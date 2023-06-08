@@ -3,7 +3,7 @@ public record Invoice
     public Guid Id { get; init; }
     public Guid ClaimItemId { get; init; }
     public ClaimItem ClaimItem { get; init; } = default!;
-    public PositiveAmount Amount { get; init; } = PositiveAmount.Zero;
+    public PositiveAmount Amount { get; init; } = PositiveAmount.From(0m);
 }
 
 public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>

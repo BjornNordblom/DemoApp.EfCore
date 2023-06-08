@@ -90,7 +90,17 @@ public abstract class ShortId : IShortId
         try
         {
             result = Parse(input);
-            var p = result.GetType().GetProperty("Identifier")?.GetValue(result);
+            if (result == null)
+            {
+                result = default;
+                return false;
+            }
+            var p = (string?)result.GetType().GetProperty("Identifier")?.GetValue(result);
+            if (p == null)
+            {
+                result = default;
+                return false;
+            }
             if (p != prefix)
             {
                 result = default;
